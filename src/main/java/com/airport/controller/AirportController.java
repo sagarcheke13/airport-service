@@ -28,10 +28,9 @@ public class AirportController {
 	@Autowired
 	private AirportService airportService;
 	
-    @GetMapping("/hello")
+    @GetMapping("/flights")
     public ResponseEntity<Object> getInfo(@RequestHeader Map<String, String> headers,
     		@RequestParam String date) {
         return demoService.getInfo(airportService.flightsArray, date);
-    }  
-        
+    }
 }

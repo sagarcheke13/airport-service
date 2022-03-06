@@ -3,10 +3,19 @@
  */
 package com.airport.service;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +23,9 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.airport.beans.Flights;
@@ -29,17 +41,31 @@ import com.opencsv.exceptions.CsvException;
 public class AirportService {
 
 	private static final String X = "x";
-	private static final String FILE_NAME = "src/main/resources/files/flights.csv";
+	private static final String FILE_NAME = "./flights.csv";
 	public List<Flights> flightsArray = new ArrayList<>();
-
+	
 	@PostConstruct
 	public void init() {
 		try{
-			Path path = Paths.get(FILE_NAME);
-            CSVReader reader= new CSVReaderBuilder(new FileReader(path.toFile())).
-                            withSkipLines(1). // Skiping firstline as it is header
-                            build();
-            flightsArray = reader.readAll()
+			
+			ClassPathResource cpr = new ClassPathResource(FILE_NAME);
+			InputStream initialStream  = cpr.getInputStream();
+		    
+	        byte[] buffer = new byte[initialStream.available()];
+            initialStream.read(buffer);
+
+            File targetFile = new File(FILE_NAME);
+            OutputStream outStream = new FileOutputStream(targetFile);
+            outStream.write(buffer);
+            
+	        Path path = Paths.get(targetFile.toURI());
+	        
+				        
+	        CSVReader reader= new CSVReaderBuilder(new FileReader(path.toFile()))
+					. withSkipLines(1)// Skiping firstline as it is header
+					. build();
+
+	        flightsArray = reader.readAll()
 		            		.stream().map(data-> 
 		            		{
 		            			List<DayOfWeek> days = new ArrayList<>();
